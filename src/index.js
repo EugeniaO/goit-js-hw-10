@@ -31,30 +31,29 @@ fetchBreeds()
 
         new SlimSelect({
             select: '#breed-select',
-            data: selectOptions
+            data: selectOptions,
+            events: {
+                afterChange: (breedId) => {
+                    refs.catInfoElement.innerHTML = '';
+                    refs.loaderBoxElement.classList.remove('hide');
+                    const { value } = breedId[0];
+                    fetchCatByBreed(value)
+                        .then((data) => { 
+                            refs.catInfoElement.innerHTML = catCard(data);
+                        })
+                        .catch((error) => { 
+                            Notify.warning(error);
+                        })
+                        .finally(() => { 
+                            refs.loaderBoxElement.classList.add('hide');
+                        });            }
+                }
         })
     })
-    .catch(() => { 
-        Notify.warning('Oops! Something went wrong! Try reloading the page!');
+    .catch((error) => { 
+        Notify.warning(error);
     })
     .finally(() => { 
         refs.loaderBoxElement.classList.add('hide');
     });
 
-refs.selectElement.addEventListener('change', (e) => { 
-    const breedId = e.target.value;
-
-    refs.catInfoElement.innerHTML = '';
-    refs.loaderBoxElement.classList.remove('hide');
-
-    fetchCatByBreed(breedId)
-        .then((data) => { 
-            refs.catInfoElement.innerHTML = catCard(data);
-        })
-        .catch(() => { 
-            Notify.warning('Oops! Something went wrong! Try reloading the page!');
-        })
-        .finally(() => { 
-            refs.loaderBoxElement.classList.add('hide');
-        });
-});

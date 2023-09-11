@@ -5,41 +5,56 @@ const API_KEY = "live_zsjQj9RzTIBRHZJncFfewDUCQN5x89pkMHFQogeb1HzzCcgwEMm8FKAfkk
 axios.defaults.headers.common["x-api-key"] = API_KEY;
 axios.defaults.baseURL = "https://api.thecatapi.com/v1";
 
-export async function fetchBreeds() { 
-    try {
-        const { data } = await axios("/breeds");
+export function fetchBreeds() {
+    return new Promise((resolve, reject) => {
+        axios("/breeds")
+            .then((response) => { 
+                const { data } = response;
 
-        return data;
-    } catch (error) {
-        throw new Error(error);
-    }
+                resolve(data);
+            })
+            .catch(() => {
+                reject('Oops! Something went wrong! Try reloading the page!');
+            });
+    })
+};
+
+export function fetchBreedInfo(breedId) { 
+    return new Promise((resolve, reject) => {
+        axios(`/breeds/${breedId}`)
+            .then((response) => { 
+                const { data } = response;
+
+                resolve(data);
+            })
+            .catch(() => {
+               reject('Oops! Something went wrong! Try reloading the page!');
+            });
+    })
 }
 
-export async function fetchBreedInfo(breedId) { 
-    try {
-        const { data } = await axios(`/breeds/${breedId}`);
+export function fetchCatByBreed(breedId) {
+    return new Promise((resolve, reject) => {
+            axios("/images/search", {
+                breed_ids: breedId
+            })
+            .then((response) => { 
+                const { data } = response;
+                const { url: image } = data[0];
 
-        return data;
-    } catch (error) {
-        throw new Error(error);
-    }
-}
-
-export async function fetchCatByBreed(breedId) { 
-    try {
-        const { data } = await axios("/images/search", {
-            breed_ids: breedId
-        });
-        const { url: image } = data[0];
-        const { name, description, temperament } = await fetchBreedInfo(breedId);
-
-        return {
-            image,
-            name,
-            description,
-            temperament
-        };
-    } catch (error) {
-        throw new Error(error);
-    }
+                fetchBreedInfo(breedId)
+                    .then((data) => { 
+                        const { name, description, temperament } = data;
+                        resolve({
+                            image,
+                            name,
+                            description,
+                            temperament
+                        });
+                    });  
+            })
+            .catch(() => {
+                reject('Oops! Something went wrong! Try reloading the page!');
+            });
+    })
 }
